@@ -10,7 +10,8 @@
     "test": "node --test tests/*",
     "check": "biome check .",
     "format": "biome format --write .",
-    "lint": "biome lint --write ."
+    "lint": "biome lint --write .",
+    "fix": "biome check --write ."
   },
   "devDependencies": {
     "@biomejs/biome": "2.3.0"
