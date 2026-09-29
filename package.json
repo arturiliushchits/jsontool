@@ -25,5 +25,9 @@
   "bugs": {
     "url": "https://github.com/arturiliushchits/jsontool/issues"
   },
-  "homepage": "https://github.com/arturiliushchits/jsontool#readme"
+  "homepage": "https://github.com/arturiliushchits/jsontool#readme",
+  "dependencies": {
+    "ajv": "^8.20.0",
+    "express": "^5.2.1"
+  }
 }

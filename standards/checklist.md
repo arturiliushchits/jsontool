@@ -4,15 +4,15 @@
 
 ## 📑 Етап 1: Ініціалізація та Структура
 
-* [ ] Створити структуру каталогів проєкту згідно із вимогами:
-  * [ ] `/ai/sessions/`
-  * [ ] `/ai/prompts-log.md`
-  * [ ] `/public/` (`index.html`, `style.css`, `js/`)
-  * [ ] `/server/` (`core/`, `db/`, `routes/`, `main.js`)
-  * [ ] `/standards/` (`adr/`, `checklist.md`, `definition-of-done.md`, `spec.md`)
-  * [ ] `/tests/`
-  * [ ] `Makefile`, `package.json`, `README.md`
-* [ ] Налаштувати `package.json` з необхідними скриптами (`dev`, `start`, `test`).
+* [x] Створити структуру каталогів проєкту згідно із вимогами:
+  * [x] `/ai/sessions/`
+  * [x] `/ai/prompts-log.md`
+  * [x] `/public/` (`index.html`, `style.css`, `js/`)
+  * [x] `/server/` (`core/`, `db/`, `routes/`, `main.js`)
+  * [x] `/standards/` (`adr/`, `checklist.md`, `definition-of-done.md`, `spec.md`)
+  * [x] `/tests/`
+  * [x] `Makefile`, `package.json`, `README.md`
+* [x] Налаштувати `package.json` з необхідними скриптами.
 * [ ] Налаштувати SQLite базу даних та написати скрипт таблиць `schemas` та `schema_history`.
 
 ## 🧩 Етап 2: Реалізація Ядра (Core Pattern Implementation)

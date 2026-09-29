@@ -13,41 +13,58 @@
 
 Система складається з двох основних частин: **Клієнт (Public Frontend)** та **Бекенд (Node.js Server)**.
 
-```text
-+-----------------------------------------------------------------------+
-|                            КЛІЄНТ (Browser)                           |
-|                                                                       |
-|  +--------------------+   +---------------------+                     |
-|  | CodeEditor (JSON)  |   | Visual Properties   |                     |
-|  | & Syntax Highlight |   | Metadata Editor     |                     |
-|  +---------+----------+   +----------+----------+                     |
-|            |                         |                                |
-|            +-------------------------+                                |
-|                                      | (події редагування)            |
-|                                      v                                |
-|                        [ EditorSubject (Observer) ]                   |
-|                                      |                                |
-|             +------------------------+-------------------+            |
-|             |                                            |            |
-|             v                                            v            |
-|   [ LiveValidationHandler ]                   [ AutoSaveHandler ]     |
-|   (Template Method / Flyweight)               (Command Manager)       |
-+----------------------------------------------+------------------------+
-                                               | (HTTP API)
-                                               v
-+-----------------------------------------------------------------------+
-|                            БЕКЕНД (Node.js)                           |
-|                                                                       |
-|  +--------------------+   +---------------------+   +--------------+  |
-|  | Schema Routes      |   | Validation Core     |   | Export Core  |  |
-|  | (/api/schemas)     |   | (Template Method)   |   | (Strategy)   |  |
-|  +---------+----------+   +----------+----------+   +-------+------+  |
-|            |                         |                      |         |
-|            +-------------------------+----------------------+         |
-|                                      |                                |
-|                                      v                                |
-|                        [ SQLite Database (db/schema) ]                |
-+-----------------------------------------------------------------------+
+```mermaid
+flowchart TB
+    %% ================= CLIENT =================
+    subgraph CLIENT["КЛІЄНТ — Browser"]
+        direction TB
+
+        EDITOR["Code Editor<br/>JSON + Syntax Highlighting"]
+        PROPS["Visual Properties &<br/>Metadata Editor<br/><small>Flyweight Method</small>"]
+
+        SUBJECT["EditorSubject<br/><small>Observer Pattern</small>"]
+
+        VALIDATION["LiveValidationHandler<br/><small>Template Method</small>"]
+        AUTOSAVE["AutoSaveHandler<br/><small>Command Manager</small>"]
+
+        EDITOR -->|"події редагування"| SUBJECT
+        PROPS -->|"події редагування"| SUBJECT
+
+        SUBJECT --> VALIDATION
+        SUBJECT --> AUTOSAVE
+    end
+
+    %% ================= API =================
+    VALIDATION -->|"HTTP API"| ROUTES
+    AUTOSAVE -->|"HTTP API"| ROUTES
+
+    %% ================= BACKEND =================
+    subgraph BACKEND["БЕКЕНД — Node.js"]
+        direction TB
+
+        ROUTES["Schema Routes<br/><small>/api/schemas</small>"]
+        CORE["Validation Core<br/><small>Template Method</small>"]
+        EXPORT["Export Core<br/><small>Strategy</small>"]
+
+        ROUTES --> DB
+        CORE --> DB
+        EXPORT --> DB
+    end
+
+    %% ================= DATABASE =================
+    DB[("SQLite Database<br/><small>db/schema</small>")]
+
+    %% ================= STYLES =================
+    classDef client fill:#e8f1ff,stroke:#2563eb,stroke-width:2px,color:#111827
+    classDef backend fill:#ecfdf5,stroke:#059669,stroke-width:2px,color:#111827
+    classDef pattern fill:#fff7ed,stroke:#ea580c,stroke-width:2px,color:#111827
+    classDef database fill:#f3e8ff,stroke:#9333ea,stroke-width:2px,color:#111827
+
+    class EDITOR,PROPS client
+    class SUBJECT,VALIDATION,AUTOSAVE pattern
+    class ROUTES,CORE,EXPORT backend
+    class DB database
+
 ```
 
 
