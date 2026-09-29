@@ -1,0 +1,33 @@
+{
+  "name": "jsontool",
+  "version": "1.0.0",
+  "description": "",
+  "main": "/server/main.js",
+  "scripts": {
+    "prepare": "git config core.hooksPath .githooks",
+    "start": "node server/main.js",
+    "dev": "node --watch server/main.js",
+    "test": "node --test tests/*",
+    "check": "biome check .",
+    "format": "biome format --write .",
+    "lint": "biome lint --write .",
+    "fix": "biome check --write ."
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.3.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/arturiliushchits/jsontool.git"
+  },
+  "author": "Artur Iliushchits",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/arturiliushchits/jsontool/issues"
+  },
+  "homepage": "https://github.com/arturiliushchits/jsontool#readme",
+  "dependencies": {
+    "ajv": "^8.20.0",
+    "express": "^5.2.1"
+  }
+}
