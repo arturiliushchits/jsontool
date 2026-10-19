@@ -1,4 +1,4 @@
-# ADR 0011: Відмова від Husky на користь `git config core.hooksPath`
+# ADR 0007: Відмова від Husky на користь `git config core.hooksPath`
 
 * **Статус:** Прийнято (Accepted)
 * **Дата:** 28.09.2026
