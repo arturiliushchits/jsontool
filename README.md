@@ -1,31 +1,31 @@
 # JSON Tool
 
-Легкий та функціональний вебінструмент для візуального редагування, валідації, аналізу та експорту **JSON Schema** та даних.
+A lightweight workbench for editing JSON Schema, validating JSON data, inspecting nested properties, sharing versions, and exporting schema documentation.
 
-## ✨ Основні можливості
+## Requirements
 
-- **Підсвітка синтаксису**: Зручний редактор JSON Schema.
-- **Валідація JSON Schema**: Перевірка коректності самої JSON-схеми з наочним виведенням помилок.
-- **Валідація JSON-даних**: Перевірка довільних JSON-значень на відповідність заданій схемі.
-- **Візуальний редактор метаданих**: Зручна акордеон-список для перегляду та швидкого оновлення метаданих властивостей (`description`, `example`, `type`, `format` тощо).
-- **Автозбереження та історія**: Автоматична фіксація змін у часі з можливістю скасування/повернення (Undo/Redo) та відновлення версій з історії.
-- **Генерація посилань (Share)**: Гостьовий доступ без авторизації — збереження схеми та створення унікального посилання для доступу.
-- **Експорт**: Експорт схеми у форматі **Markdown Table** або **JSON**.
-- **Flat View**: Перетворення ієрархічної JSON-схеми у плоский вигляд (flat layout) для зручного аналізу глибинних полів.
+- Node.js 22.13 or newer (built-in `node:sqlite`)
+- npm
 
-## 🚀 Швидкий старт
+## Run
 
-### Встановлення та запуск
-
-```bash
-make prepare
-make dev
+```sh
+npm install
+npm start
 ```
 
-Відкрийте браузер за адресою: `http://localhost:3000`
+Open `http://localhost:3000`. For automatic server restarts during development, use `npm run dev`.
 
-## 🧪 Тестування
+The SQLite database is created at `server/db/json-tool.sqlite` on first startup. Draft schemas are kept in the browser until you choose **Share**; shared schemas are autosaved with a version history. Links are public and do not require an account.
 
-```bash
-make test
-```
+## Features
+
+- JSON Schema editor with syntax highlighting, formatting, and live draft-07 / draft-2020-12 diagnostics
+- Visual property metadata editor, flat property view, and data validation
+- Undo/redo for source and metadata changes
+- Public share links, autosave, and restoreable version history
+- Markdown table and canonical JSON exports
+
+## Project checks
+
+`npm run check` runs Biome. `npm test` uses Node's test runner.

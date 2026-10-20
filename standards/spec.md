@@ -170,7 +170,7 @@ erDiagram
 
 - **`GET /api/schemas/:link/history`**
   - **Опис**: Отримує список усіх історичних версій схеми.
-  - **Response**: `[ { "id": 1, "created_at": "..." }, ... ]`
+  - **Response**: `[ { "id": 1, "created_at": "...", "content": "{...}" }, ... ]` у порядку від найстарішої версії до найновішої.
 
 - **`GET /api/schemas/:link/history/:historyId`**
   - **Опис**: Відновлює конкретну версію з історії.
@@ -182,6 +182,16 @@ erDiagram
   - **Body**: `{ "content": "{\"...\"}", "format": "markdown" | "json" }`
   - **Response**: `{ "result": "| Field | Type | ... |" }`
 
+### 5.3. Валідація
+- **`POST /api/validate/schema`**
+  - **Body**: `{ "content": "{\"type\":\"object\"}" }`
+  - **Response**: `{ "valid": true, "errors": [] }`
+- **`POST /api/validate`**
+  - **Body**: `{ "schema": "{...}", "data": "{...}" }`
+  - **Response**: `{ "valid": false, "errors": [{ "path": "/name", "keyword": "required", "message": "..." }] }`
+
+The server requires Node.js 22.13 or newer for the built-in `node:sqlite` module. The browser keeps an unshared draft locally; selecting Share creates a public slug, and subsequent edits are saved as history versions.
+
 
 ## 6. Ключові сценарії використання (Data Flow)
 
@@ -191,7 +201,9 @@ erDiagram
 3. Оновлюється текстовий редактор.
 4. `EditorSubject` (Observer) викликає підписників.
 5. `AutoSaveObserver` надсилає POST на `/api/schemas` після паузи (debounce).
-6. Сервер додає запис у `schema_history`.
+6. Сервер додає новий запис у `schema_history`, якщо вміст відрізняється від останньої версії.
+
+Undo на клієнті переміщує курсор між завантаженими/локальними знімками. Нові зміни після Undo додаються в кінець послідовності; попередні майбутні знімки не видаляються.
 
 ### Сценарій 2: Валідація JSON-даних за схемою
 1. Користувач вводить JSON-значення в панель перевірки.
