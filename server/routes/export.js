@@ -17,15 +17,15 @@ router.post('/', (request, response) => {
     })
   }
 
+  let schema
   try {
-    const schema = JSON.parse(content)
-    const result = new ExportContext(strategies[format]).export(schema)
-    return response.json({ result })
-  } catch (error) {
-    return response
-      .status(400)
-      .json({ error: `Unable to export schema: ${error.message}` })
+    schema = JSON.parse(content)
+  } catch {
+    return response.status(400).json({ error: 'content must be valid JSON.' })
   }
+
+  const result = new ExportContext(strategies[format]).export(schema)
+  return response.json({ result })
 })
 
 export default router

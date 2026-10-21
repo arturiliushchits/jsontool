@@ -22,44 +22,63 @@ export default function createSchemasRouter(database) {
       return response.status(400).json({ error: 'link must be a valid slug.' })
     }
 
-    let link = requestedLink
-    let schema = link ? findSchema.get(link) : null
-    if (link && !schema)
-      return response.status(404).json({ error: 'Schema link was not found.' })
-    if (!link) {
-      do {
-        link = randomBytes(6).toString('base64url')
-      } while (findSchema.get(link))
-      insertSchema.run(link)
-      schema = findSchema.get(link)
-    }
+    database.exec('BEGIN IMMEDIATE')
+    let result
+    let status = 201
+    try {
+      let link = requestedLink
+      let schema = link ? findSchema.get(link) : null
+      if (link && !schema) {
+        database.exec('ROLLBACK')
+        return response
+          .status(404)
+          .json({ error: 'Schema link was not found.' })
+      }
+      if (!link) {
+        do {
+          link = randomBytes(6).toString('base64url')
+        } while (findSchema.get(link))
+        insertSchema.run(link)
+        schema = findSchema.get(link)
+      }
 
-    const latest = database
-      .prepare(`
+      const latest = database
+        .prepare(`
       SELECT schema_history.id, schema_history.created_at, schema_history.content
       FROM schema_history
       WHERE schema_history.schema_id = ?
       ORDER BY schema_history.id DESC
       LIMIT 1
     `)
-      .get(schema.id)
-    if (latest?.content === content) {
-      return response.json({
-        link,
-        historyId: latest.id,
-        updatedAt: latest.created_at,
-      })
+        .get(schema.id)
+      if (latest?.content === content) {
+        status = 200
+        result = {
+          link,
+          historyId: latest.id,
+          updatedAt: latest.created_at,
+        }
+      } else {
+        const history = insertHistory.run(schema.id, content)
+        const saved = database
+          .prepare('SELECT created_at FROM schema_history WHERE id = ?')
+          .get(history.lastInsertRowid)
+        result = {
+          link,
+          historyId: Number(history.lastInsertRowid),
+          updatedAt: saved.created_at,
+        }
+      }
+      database.exec('COMMIT')
+    } catch (error) {
+      try {
+        database.exec('ROLLBACK')
+      } catch (rollbackError) {
+        console.error('Database rollback failed:', rollbackError)
+      }
+      throw error
     }
-
-    const history = insertHistory.run(schema.id, content)
-    const saved = database
-      .prepare('SELECT created_at FROM schema_history WHERE id = ?')
-      .get(history.lastInsertRowid)
-    return response.status(201).json({
-      link,
-      historyId: Number(history.lastInsertRowid),
-      updatedAt: saved.created_at,
-    })
+    return response.status(status).json(result)
   })
 
   router.get('/:link/history/:historyId', (request, response) => {
@@ -80,6 +99,8 @@ export default function createSchemasRouter(database) {
   })
 
   router.get('/:link/history', (request, response) => {
+    if (!findSchema.get(request.params.link))
+      return response.status(404).json({ error: 'Schema link was not found.' })
     const versions = database
       .prepare(`
       SELECT schema_history.id, schema_history.created_at, schema_history.content
