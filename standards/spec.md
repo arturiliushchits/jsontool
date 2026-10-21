@@ -25,18 +25,17 @@ flowchart TB
         SUBJECT["EditorSubject<br/><small>Observer Pattern</small>"]
 
         VALIDATION["LiveValidationHandler<br/><small>Template Method</small>"]
-        AUTOSAVE["AutoSaveHandler<br/><small>Command Manager</small>"]
+        SAVE["Manual Save<br/><small>Remote Snapshot</small>"]
 
         EDITOR -->|"події редагування"| SUBJECT
         PROPS -->|"події редагування"| SUBJECT
 
         SUBJECT --> VALIDATION
-        SUBJECT --> AUTOSAVE
     end
 
     %% ================= API =================
     VALIDATION -->|"HTTP API"| ROUTES
-    AUTOSAVE -->|"HTTP API"| ROUTES
+      SAVE -->|"HTTP API"| ROUTES
 
     %% ================= BACKEND =================
     subgraph BACKEND["БЕКЕНД — Node.js"]
@@ -61,7 +60,8 @@ flowchart TB
     classDef database fill:#f3e8ff,stroke:#9333ea,stroke-width:2px,color:#111827
 
     class EDITOR,PROPS client
-    class SUBJECT,VALIDATION,AUTOSAVE pattern
+    class SUBJECT,VALIDATION pattern
+    class SAVE client
     class ROUTES,CORE,EXPORT backend
     class DB database
 
@@ -108,11 +108,10 @@ flowchart TB
 
 ### 3.5. Observer (Спостерігач)
 - **Розташування**: `/public/js/observer.js`
-- **Призначення**: Реактивне оновлення UI та автозбереження при редагуванні.
+- **Призначення**: Реактивне оновлення UI та автоматична валідація при редагуванні. Віддалене збереження запускається лише явною дією користувача.
 - **Класи**:
   - `EditorSubject` — реєструє слухачів та викликає `notify(schemaText)`.
   - `LiveValidationObserver` — запускає валідацію при зміні тексту.
-  - `AutoSaveObserver` — ініціює дебаунс-збереження та запис команди в історію.
   - `FlatViewObserver` — перераховує та оновлює плоске представлення JSON.
 
 ---
@@ -134,6 +133,7 @@ erDiagram
         INTEGER id PK "AUTOINCREMENT"
         INTEGER schema_id FK "Посилання на schemas.id"
         TEXT content "Повний вміст JSON Schema"
+      TEXT label "Назва snapshot (nullable)"
         DATETIME created_at "DEFAULT CURRENT_TIMESTAMP"
     }
 ```
@@ -152,6 +152,7 @@ erDiagram
 | `id` | `INTEGER` | `PRIMARY KEY AUTOINCREMENT` | Унікальний ідентифікатор запису історії |
 | `schema_id` | `INTEGER` | `FOREIGN KEY (schemas.id) ON DELETE CASCADE` | Посилання на батьківську схему |
 | `content` | `TEXT` | `NOT NULL` | Текстовий вміст JSON Schema |
+| `label` | `TEXT` | `NULL` | Необов'язкова назва збереженої версії |
 | `created_at` | `DATETIME` | `DEFAULT CURRENT_TIMESTAMP` | Дата та час створення версії |
 
 ---
@@ -161,8 +162,10 @@ erDiagram
 ### 5.1. Схеми та Історія
 - **`POST /api/schemas`**
   - **Опис**: Створює нову схему або зберігає нову версію існуючої.
-  - **Body**: `{ "link": "optional-link-hash", "content": "{\"...\"}" }`
-  - **Response**: `{ "link": "abc123xyz", "historyId": 12, "updatedAt": "..." }`
+  - **Body**: `{ "link": "optional-link-hash", "content": "{\"...\"}", "label": "optional-name" }`
+  - **Response**: `{ "link": "abc123xyz", "historyId": 12, "updatedAt": "...", "label": "2026-10-21 16:47:46 UTC" }`
+  - Якщо `label` відсутній або порожній, сервер встановлює UTC дату й час у форматі `YYYY-MM-DD HH:mm:ss UTC`.
+  - Викликається кнопкою **Save version** або **Share**; Share спершу зберігає версію, потім копіює посилання.
 
 - **`GET /api/schemas/:link`**
   - **Опис**: Отримує останній стан схеми за її посиланням.
@@ -170,17 +173,37 @@ erDiagram
 
 - **`GET /api/schemas/:link/history`**
   - **Опис**: Отримує список усіх історичних версій схеми.
-  - **Response**: `[ { "id": 1, "created_at": "..." }, ... ]`
+  - **Response**: `[ { "id": 1, "created_at": "...", "content": "{...}", "label": "2026-10-21T10:31:07.000Z" }, ... ]` у порядку від найстарішої версії до найновішої.
 
 - **`GET /api/schemas/:link/history/:historyId`**
   - **Опис**: Відновлює конкретну версію з історії.
   - **Response**: `{ "id": 12, "content": "{\"...\"}" }`
+
+- **`PATCH /api/schemas/:link/history/:historyId`**
+  - **Опис**: Перейменовує snapshot.
+  - **Body**: `{ "label": "Initial draft" }` (1–80 символів після обрізання пробілів).
+  - **Response**: `{ "id": 12, "label": "Initial draft" }`
+
+- **`DELETE /api/schemas/:link/history/:historyId`**
+  - **Опис**: Видаляє snapshot. Якщо це останній snapshot, також видаляє схему та її публічне посилання.
+  - **Response**: `{ "id": 12, "deleted": true, "schemaDeleted": false }`
+  - Клієнт запитує підтвердження користувача перед відправленням запиту.
 
 ### 5.2. Експорт
 - **`POST /api/export`**
   - **Опис**: Експортує надану схему в обраний формат за допомогою Strategy.
   - **Body**: `{ "content": "{\"...\"}", "format": "markdown" | "json" }`
   - **Response**: `{ "result": "| Field | Type | ... |" }`
+
+### 5.3. Валідація
+- **`POST /api/validate/schema`**
+  - **Body**: `{ "content": "{\"type\":\"object\"}" }`
+  - **Response**: `{ "valid": true, "errors": [] }`
+- **`POST /api/validate`**
+  - **Body**: `{ "schema": "{...}", "data": "{...}" }`
+  - **Response**: `{ "valid": false, "errors": [{ "path": "/name", "keyword": "required", "message": "..." }] }`
+
+The server requires Node.js 22.13 or newer for the built-in `node:sqlite` module. The browser keeps edits and local Undo/Redo state separate from remote snapshots. Save explicitly creates a remote snapshot; Share saves the current snapshot before copying its link.
 
 
 ## 6. Ключові сценарії використання (Data Flow)
@@ -190,8 +213,10 @@ erDiagram
 2. Створюється об'єкт `UpdatePropertyCommand` і виконується.
 3. Оновлюється текстовий редактор.
 4. `EditorSubject` (Observer) викликає підписників.
-5. `AutoSaveObserver` надсилає POST на `/api/schemas` після паузи (debounce).
-6. Сервер додає запис у `schema_history`.
+5. `LiveValidationObserver` перевіряє схему автоматично; локальна історія підтримує Undo/Redo без мережевих запитів.
+6. Користувач натискає **Save version**, щоб явно додати snapshot у `schema_history`.
+
+Remote snapshots можна перейменувати, відновити або видалити. Видалення потребує підтвердження; видалення останнього snapshot також видаляє публічне посилання. Відновлення змінює лише локальний стан редактора, доки користувач знову не натисне **Save version**. Нова локальна правка після Undo відгалужує історію та замінює майбутні локальні стани.
 
 ### Сценарій 2: Валідація JSON-даних за схемою
 1. Користувач вводить JSON-значення в панель перевірки.

@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<meta name="theme-color" content="#f3f5f1" />
+		<title>JSON Tool | Schema Workbench</title>
+		<link rel="stylesheet" href="/style.css" />
+		<script type="module" src="/js/app.js"></script>
+	</head>
+	<body>
+		<header class="topbar">
+			<a class="brand" href="/" aria-label="JSON Tool home">
+				<span class="brand-mark" aria-hidden="true">{ }</span>
+				<span>json<span class="brand-light">tool</span></span>
+			</a>
+			<div class="workspace-label"><span class="status-dot"></span><span id="save-status">Local draft</span></div>
+			<div class="top-actions">
+				<button class="icon-button" id="undo-button" title="Undo" aria-label="Undo" disabled>↶</button>
+				<button class="icon-button" id="redo-button" title="Redo" aria-label="Redo" disabled>↷</button>
+				<span class="action-divider"></span>
+				<button class="button button-subtle" id="share-button"><span aria-hidden="true">↗</span> Share</button>
+				<label class="sr-only" for="export-format">Export format</label>
+				<select id="export-format" class="select-control" aria-label="Export format">
+					<option value="markdown">Markdown</option>
+					<option value="json">JSON</option>
+				</select>
+				<button class="button button-primary" id="export-button"><span aria-hidden="true">↓</span> Export</button>
+			</div>
+		</header>
+
+		<main class="workspace">
+			<section class="editor-column" aria-label="Schema editor">
+				<div class="panel-heading editor-heading">
+					<div>
+						<div class="eyebrow">SCHEMA WORKSPACE</div>
+						<h1>Schema editor</h1>
+					</div>
+					<div class="editor-heading-actions">
+						<span id="schema-status" class="validation-chip"><span class="chip-dot"></span><span id="schema-status-label">Checking schema</span></span>
+						<button id="format-button" class="text-button" title="Format JSON">Format</button>
+					</div>
+				</div>
+				<div class="editor-frame">
+					<div class="editor-gutter" id="line-numbers" aria-hidden="true">1</div>
+					<div class="code-surface">
+						<pre id="schema-highlight" aria-hidden="true"></pre>
+						<textarea id="schema-editor" aria-label="JSON Schema source" spellcheck="false" autocapitalize="off" autocomplete="off" autocorrect="off"></textarea>
+					</div>
+				</div>
+				<div class="editor-footer">
+					<span id="schema-location">JSON Schema · draft-07</span>
+					<span><kbd>Tab</kbd> indent <span class="footer-separator">·</span> <kbd>Ctrl</kbd> + <kbd>Enter</kbd> validate</span>
+				</div>
+				<section class="diagnostics" aria-live="polite">
+					<div class="section-heading"><h2>Schema diagnostics</h2><span id="diagnostic-count" class="count-label">Ready</span></div>
+					<div id="schema-errors" class="diagnostic-list"><p class="empty-note">Your schema will be checked as you edit.</p></div>
+				</section>
+			</section>
+
+			<aside class="inspector-column" aria-label="Schema inspector">
+				<section class="inspector-section properties-section">
+					<div class="section-heading inspector-title"><div><div class="eyebrow">SCHEMA DESIGN</div><h2>Properties</h2></div><span id="property-count" class="count-label">0 fields</span></div>
+					<div id="property-editor" class="property-list"></div>
+				</section>
+				<section class="inspector-section flat-section">
+					<div class="section-heading"><div><div class="eyebrow">STRUCTURE</div><h2>Flat view</h2></div><span id="flat-count" class="count-label">0 paths</span></div>
+					<div id="flat-view" class="flat-list"><p class="empty-note">Fields appear here once the schema is valid.</p></div>
+				</section>
+				<section class="inspector-section data-section">
+					<div class="section-heading"><div><div class="eyebrow">TRY IT</div><h2>Validate data</h2></div><span id="data-status" class="count-label">Sample JSON</span></div>
+					<label class="sr-only" for="data-editor">JSON data to validate</label>
+					<textarea id="data-editor" class="data-editor" spellcheck="false" autocapitalize="off" autocomplete="off" autocorrect="off">{
+	"id": 42,
+	"name": "Ada Lovelace",
+	"email": "ada@example.com"
+}</textarea>
+					<div id="data-errors" class="data-errors" aria-live="polite"></div>
+					<button id="validate-data-button" class="button button-dark button-wide"><span aria-hidden="true">✓</span> Validate JSON</button>
+				</section>
+				<section class="inspector-section history-section">
+					<div class="section-heading"><div><div class="eyebrow">REMOTE SNAPSHOTS</div><h2>History</h2></div><div class="history-actions"><button id="refresh-history" class="text-button">Refresh</button><button id="save-button" class="button button-primary">Save version</button></div></div>
+					<div id="history-list" class="history-list"><p class="empty-note">Save a version to start remote history.</p></div>
+				</section>
+			</aside>
+		</main>
+		<div id="toast" class="toast" role="status" aria-live="polite"></div>
+	</body>
+</html>

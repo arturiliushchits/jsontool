@@ -2,7 +2,8 @@
   "name": "jsontool",
   "version": "1.0.0",
   "description": "",
-  "main": "/server/main.js",
+  "type": "module",
+  "main": "server/main.js",
   "scripts": {
     "prepare": "git config core.hooksPath .githooks",
     "start": "node server/main.js",
