@@ -4,7 +4,6 @@ import {
   UpdatePropertyCommand,
 } from './commands.js'
 import {
-  AutoSaveObserver,
   EditorSubject,
   FlatViewObserver,
   LiveValidationObserver,
@@ -118,6 +117,8 @@ function setEditorText(text, { clearHistory = false } = {}) {
   if (clearHistory) {
     commandHistory.initialize([text], editor, setEditorText)
     updateHistoryButtons()
+  } else {
+    setStatus(schemaLink ? 'Local changes' : 'Local draft')
   }
   paintEditor()
   subject.notify(text)
@@ -130,6 +131,7 @@ function handleEditorChange() {
     command.previousValue = previousText
     commandHistory.record(command)
     previousText = nextText
+    setStatus(schemaLink ? 'Local changes' : 'Local draft')
   }
   paintEditor()
   subject.notify(nextText)
@@ -325,21 +327,8 @@ const flatView = new FlatViewObserver((rows, schema) => {
   )
   renderFlatView(rows, schema)
 })
-const autoSave = new AutoSaveObserver({
-  getLink: () => schemaLink,
-  onSaved: () => {
-    setStatus('All changes saved', 'saved')
-    refreshHistory()
-  },
-  onPending: () => setStatus('Unsaved edits', 'saving'),
-  onError: (error) => {
-    setStatus('Save failed', 'error')
-    showToast(error.message)
-  },
-})
 subject.subscribe(liveValidation)
 subject.subscribe(flatView)
-subject.subscribe(autoSave)
 
 function getProperty(schema, path) {
   let target = schema
@@ -377,7 +366,7 @@ async function refreshHistory() {
   const container = byId('history-list')
   if (!schemaLink) {
     container.innerHTML =
-      '<p class="empty-note">Share this schema to start a version history.</p>'
+      '<p class="empty-note">Save a version to start remote history.</p>'
     return
   }
   try {
@@ -404,20 +393,90 @@ function renderHistory(versions) {
     container.append(note)
     return
   }
-  for (const version of versions) {
+  for (const [index, version] of versions.entries()) {
     const row = document.createElement('div')
     row.className = 'history-item'
+    const entry = document.createElement('div')
+    entry.className = 'history-entry'
+    const name = document.createElement('span')
+    name.className = 'history-name'
+    name.textContent = version.label || `Version ${index + 1}`
     const date = document.createElement('span')
     date.className = 'history-time'
     date.textContent = new Date(
       `${version.created_at.replace(' ', 'T')}Z`,
     ).toLocaleString()
+    entry.append(name, date)
     const restore = document.createElement('button')
     restore.className = 'history-restore'
     restore.textContent = 'Restore'
     restore.addEventListener('click', () => restoreVersion(version.id))
-    row.append(date, restore)
+    const rename = document.createElement('button')
+    rename.className = 'history-rename'
+    rename.textContent = 'Rename'
+    rename.addEventListener('click', () =>
+      renameVersion(version.id, version.label || `Version ${index + 1}`),
+    )
+    const remove = document.createElement('button')
+    remove.className = 'history-delete'
+    remove.textContent = 'Delete'
+    remove.addEventListener('click', () =>
+      deleteVersion(
+        version.id,
+        version.label || `Version ${index + 1}`,
+        versions.length === 1,
+      ),
+    )
+    row.append(entry, rename, restore, remove)
     container.append(row)
+  }
+}
+
+async function renameVersion(historyId, currentLabel) {
+  const label = window.prompt('Name this version', currentLabel)
+  if (label === null) return
+  try {
+    await requestJson(
+      `/api/schemas/${encodeURIComponent(schemaLink)}/history/${historyId}`,
+      {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ label }),
+      },
+    )
+    await refreshHistory()
+    showToast('Version renamed.')
+  } catch (error) {
+    showToast(error.message)
+  }
+}
+
+async function deleteVersion(historyId, label, isLastVersion) {
+  const detail = isLastVersion
+    ? ' This will also remove the public share link.'
+    : ''
+  if (!window.confirm(`Delete "${label}"? This cannot be undone.${detail}`))
+    return
+  try {
+    const result = await requestJson(
+      `/api/schemas/${encodeURIComponent(schemaLink)}/history/${historyId}`,
+      { method: 'DELETE' },
+    )
+    if (result.schemaDeleted) {
+      schemaLink = null
+      const nextUrl = new URL(location.href)
+      nextUrl.searchParams.delete('schema')
+      history.replaceState(null, '', nextUrl)
+      setStatus('Local draft')
+    }
+    await refreshHistory()
+    showToast(
+      result.schemaDeleted
+        ? 'Version and share link deleted.'
+        : 'Version deleted.',
+    )
+  } catch (error) {
+    showToast(error.message)
   }
 }
 
@@ -437,8 +496,10 @@ async function restoreVersion(historyId) {
   }
 }
 
-async function shareSchema() {
+async function saveSchema({ silent = false } = {}) {
   setStatus('Saving…', 'saving')
+  const button = byId('save-button')
+  button.disabled = true
   const content = editor.value
   try {
     const result = await requestJson('/api/schemas', {
@@ -450,12 +511,28 @@ async function shareSchema() {
       }),
     })
     schemaLink = result.link
-    autoSave.markSaved(content)
     const shareUrl = new URL(location.href)
     shareUrl.searchParams.set('schema', schemaLink)
     history.replaceState(null, '', shareUrl)
-    setStatus('All changes saved', 'saved')
+    setStatus('Saved remotely', 'saved')
     await refreshHistory()
+    if (!silent) showToast('Version saved.')
+    return result
+  } catch (error) {
+    setStatus('Save failed', 'error')
+    if (!silent) showToast(error.message)
+    return null
+  } finally {
+    button.disabled = false
+  }
+}
+
+async function shareSchema() {
+  const saved = await saveSchema({ silent: true })
+  if (!saved) return
+  const shareUrl = new URL(location.href)
+  shareUrl.searchParams.set('schema', saved.link)
+  try {
     try {
       await navigator.clipboard.writeText(shareUrl.href)
       showToast('Share link copied to clipboard.')
@@ -463,7 +540,6 @@ async function shareSchema() {
       window.prompt('Copy your share link', shareUrl.href)
     }
   } catch (error) {
-    setStatus('Save failed', 'error')
     showToast(error.message)
   }
 }
@@ -549,6 +625,7 @@ byId('format-button').addEventListener('click', () => {
 })
 byId('validate-data-button').addEventListener('click', validateData)
 byId('share-button').addEventListener('click', shareSchema)
+byId('save-button').addEventListener('click', saveSchema)
 byId('export-button').addEventListener('click', exportSchema)
 byId('refresh-history').addEventListener('click', refreshHistory)
 byId('undo-button').addEventListener('click', () => {
@@ -592,12 +669,8 @@ async function loadInitialSchema() {
       `/api/schemas/${encodeURIComponent(schemaLink)}/history`,
     )
     if (!versions.length) throw new Error('Schema link was not found.')
-    const snapshots = versions.map((version) => version.content)
-    const latestContent = snapshots[snapshots.length - 1]
-    autoSave.markSaved(latestContent)
-    commandHistory.initialize(snapshots, editor, setEditorText)
-    setEditorText(latestContent)
-    updateHistoryButtons()
+    const latestContent = versions[versions.length - 1].content
+    setEditorText(latestContent, { clearHistory: true })
     renderHistory(versions)
     setStatus('Shared schema loaded', 'saved')
   } catch (error) {

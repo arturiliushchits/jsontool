@@ -75,6 +75,7 @@ export class CommandHistory {
   record(command) {
     this.editor = command.editor
     this.onChange = command.onChange
+    this.snapshots.splice(this.cursor + 1)
     this.snapshots.push(command.editor.value)
     this.cursor = this.snapshots.length - 1
   }

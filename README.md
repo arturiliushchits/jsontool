@@ -16,14 +16,15 @@ npm start
 
 Open `http://localhost:3000`. For automatic server restarts during development, use `npm run dev`.
 
-The SQLite database is created at `server/db/json-tool.sqlite` on first startup. Draft schemas are kept in the browser until you choose **Share**; shared schemas are autosaved with a version history. Links are public and do not require an account.
+The SQLite database is created at `server/db/json-tool.sqlite` on first startup. Edits and Undo/Redo history stay local until you choose **Save version** or **Share**. Snapshots default to their UTC save date and time (`YYYY-MM-DD HH:mm:ss UTC`) as a name and can be renamed, restored, or deleted with confirmation. Share saves the current snapshot before copying the public link. Deleting the last snapshot also removes its public link. Links are public and do not require an account.
 
 ## Features
 
 - JSON Schema editor with syntax highlighting, formatting, and live draft-07 / draft-2020-12 diagnostics
 - Visual property metadata editor, flat property view, and data validation
 - Undo/redo for source and metadata changes
-- Public share links, autosave, and restoreable version history
+- Explicitly saved, renameable, restorable, and deletable remote snapshots
+- Public share links with confirmation before deleting remote history
 - Markdown table and canonical JSON exports
 
 ## Project checks

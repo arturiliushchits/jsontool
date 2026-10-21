@@ -48,7 +48,7 @@
 
 * [ ] **Observer Pattern**:
   * [x] Реалізувати `EditorSubject` у `/public/js/observer.js`.
-  * [x] Підключити `LiveValidationObserver`, `AutoSaveObserver`, `FlatViewObserver`.
+  * [x] Підключити `LiveValidationObserver` і `FlatViewObserver`; збереження запускається лише кнопкою.
 
 * [ ] **Command Pattern**:
   * [x] Реалізувати менеджер команд з підтримкою Undo/Redo у `/public/js/commands.js`.
@@ -59,6 +59,8 @@
   * [x] Створити візуальну таблицю редагування метаданих (`description`, `example`, `type`, `format`).
   * [x] Створити панель Flat View та панель валідації JSON-даних.
   * [x] Додати кнопку створення Share-посилання та експорту у Markdown.
+  * [x] Додати явне збереження remote snapshot і перейменування елементів історії.
+  * [x] Додати підтвердження та видалення snapshot із remote history.
 
 ## 🧪 Етап 5: Контроль якості та Фіналізація
 

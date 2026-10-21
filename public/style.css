@@ -137,9 +137,17 @@ kbd { padding: 2px 4px; border: 1px solid #dce2dc; border-radius: 3px; backgroun
 .data-error + .data-error { margin-top: 4px; }
 .data-success { color: var(--green-dark); font-size: 10px; }
 .history-item { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 7px 8px; border: 1px solid #e8ece7; border-radius: 4px; background: #fbfcfa; }
+.history-entry { display: grid; min-width: 0; gap: 3px; }
+.history-name { overflow: hidden; color: #34463c; text-overflow: ellipsis; white-space: nowrap; font-size: 10px; font-weight: 650; }
 .history-time { color: #647168; font-size: 10px; }
+.history-actions { display: flex; align-items: center; gap: 10px; }
+.history-actions .button { min-height: 30px; padding: 0 9px; font-size: 10px; }
 .history-restore { padding: 4px 7px; border: 1px solid #dce6df; border-radius: 3px; background: #fff; color: var(--green-dark); font-size: 9px; }
 .history-restore:hover { background: var(--green-pale); }
+.history-rename { padding: 4px 7px; border: 1px solid #dce6df; border-radius: 3px; background: #fff; color: #58675e; font-size: 9px; }
+.history-rename:hover { background: #eef2ee; }
+.history-delete { padding: 4px 7px; border: 1px solid #ebd6d0; border-radius: 3px; background: #fff; color: #a34837; font-size: 9px; }
+.history-delete:hover { background: #fff1ed; }
 .toast { position: fixed; right: 22px; bottom: 22px; z-index: 5; max-width: min(360px, calc(100vw - 32px)); padding: 11px 15px; border: 1px solid #33594c; border-radius: 5px; background: #263c33; color: #fff; box-shadow: 0 8px 24px #162a2133; font-size: 12px; opacity: 0; pointer-events: none; transform: translateY(8px); transition: opacity .18s, transform .18s; }
 .toast.is-visible { opacity: 1; transform: translateY(0); }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; }
