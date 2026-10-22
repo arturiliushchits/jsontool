@@ -17,22 +17,22 @@
 
 ## 🧩 Етап 2: Реалізація Ядра (Core Pattern Implementation)
 
-* [ ] **Strategy Pattern**:
+* [x] **Strategy Pattern**:
   * [x] Створити базовий клас/інтерфейс `ExportStrategy`.
   * [x] Реалізувати `MarkdownExportStrategy` (генерація Markdown-таблиці з полів JSON Schema).
   * [x] Реалізувати `JsonExportStrategy`.
-  * [ ] Покрити тестами `/tests/strategy.test.js`.
+  * [x] Покрити модульними тестами стратегії експорту.
 
-* [ ] **Template Method Pattern**:
+* [x] **Template Method Pattern**:
   * [x] Створити абстрактний `BaseValidator` з кроками `parseJson`, `validateRules`, `formatErrors`.
   * [x] Реалізувати `SchemaStructureValidator` (перевірка відповідності специфікації JSON Schema).
   * [x] Реалізувати `JsonValueValidator` (перевірка JSON-значень проти схеми).
-  * [ ] Покрити тестами `/tests/template_method.test.js`.
+  * [x] Покрити модульними тестами валідатори.
 
-* [ ] **Flyweight Pattern (UI Type Controls)**:
+* [x] **Flyweight Pattern (UI Type Controls)**:
   * [x] Створити клас `TypeControlFlyweight` для зберігання розділюваного стану UI-компонентів типів даних.
   * [x] Створити `TypeControlFactory` у `/public/js/ui/` з внутрішнім кешем (`Map`) для перевикористання єдиних інстансів controls.
-  * [ ] Перевірити перевикористання інстансів фабрики та відсутність дублювання об'єктів у тестах `/tests/flyweight.test.js`.
+  * [x] Перевірити повторне використання фабрикою екземплярів одного типу.
 
 ## 🗄 Етап 3: Бекенд API та База Даних
 
@@ -46,15 +46,15 @@
 
 ## 💻 Етап 4: Фронтенд та Клієнтські Паттерни
 
-* [ ] **Observer Pattern**:
+* [x] **Observer Pattern**:
   * [x] Реалізувати `EditorSubject` у `/public/js/observer.js`.
   * [x] Підключити `LiveValidationObserver` і `FlatViewObserver`; збереження запускається лише кнопкою.
 
-* [ ] **Command Pattern**:
+* [x] **Command Pattern**:
   * [x] Реалізувати менеджер команд з підтримкою Undo/Redo у `/public/js/commands.js`.
   * [x] Реалізувати `UpdatePropertyCommand` та `ReplaceSchemaCommand`.
 
-* [ ] **Інтерфейс користувача (UI)**:
+* [x] **Інтерфейс користувача (UI)**:
   * [x] Інтегрувати текстовий редактор підсвітки JSON Schema.
   * [x] Створити візуальну таблицю редагування метаданих (`description`, `example`, `type`, `format`).
   * [x] Створити панель Flat View та панель валідації JSON-даних.
@@ -64,7 +64,9 @@
 
 ## 🧪 Етап 5: Контроль якості та Фіналізація
 
-* [ ] Запустити повний комплект тестів `npm test`.
+* [x] Додати unit-, integration- та Playwright end-to-end тести; `npm test` запускає всі три набори.
+* [x] Додати окремий запуск StrykerJS.
+* [x] Запустити повний комплект тестів `npm test`.
 * [ ] Перевірити відповідність коду критеріям з `standards/definition-of-done.md`.
 * [ ] Перевірити відсутність надлишкового або дубльованого коду.
 * [ ] Заповнити `/ai/prompts-log.md` та створити звіт про сесію в `/ai/sessions/`.

@@ -218,6 +218,13 @@ The server requires Node.js 22.13 or newer for the built-in `node:sqlite` module
 
 Remote snapshots можна перейменувати, відновити або видалити. Видалення потребує підтвердження; видалення останнього snapshot також видаляє публічне посилання. Відновлення змінює лише локальний стан редактора, доки користувач знову не натисне **Save version**. Нова локальна правка після Undo відгалужує історію та замінює майбутні локальні стани.
 
+## 7. Перевірка якості
+
+- `npm test` запускає модульні (`node:test`), інтеграційні (HTTP API через нативний `fetch`) та end-to-end тести (Playwright, Chromium).
+- `npm run test:unit`, `npm run test:integration` і `npm run test:e2e` запускають окремі набори.
+- `npm run test:mutation` запускає StrykerJS з `tap-runner` для модульних тестів. Звіти зберігаються в `reports/mutation/`; пережиті мутації класифікуються в `tests/mutation-survivors.md`.
+- Перед першим запуском браузерних тестів виконайте `npx playwright install chromium`.
+
 ### Сценарій 2: Валідація JSON-даних за схемою
 1. Користувач вводить JSON-значення в панель перевірки.
 2. Клієнт/Сервер викликає `JsonValueValidator`, розширений від `BaseValidator` (Template Method).

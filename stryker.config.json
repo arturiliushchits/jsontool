@@ -1,0 +1,24 @@
+{
+  "$schema": "https://raw.githubusercontent.com/stryker-mutator/stryker-js/master/packages/core/schema/stryker-schema.json",
+  "testRunner": "tap",
+  "plugins": ["@stryker-mutator/tap-runner"],
+  "tap": {
+    "testFiles": ["tests/unit/*.test.js"],
+    "forceBail": true
+  },
+  "mutate": [
+    "server/core/export/*.js",
+    "server/core/validation/*.js",
+    "public/js/commands.js",
+    "public/js/observer.js",
+    "public/js/ui/type-controls.js"
+  ],
+  "reporters": ["clear-text", "html", "json"],
+  "coverageAnalysis": "perTest",
+  "concurrency": 2,
+  "thresholds": {
+    "high": 80,
+    "low": 60,
+    "break": 0
+  }
+}
