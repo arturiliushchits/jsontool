@@ -27,6 +27,14 @@ The SQLite database is created at `server/db/json-tool.sqlite` on first startup.
 - Public share links with confirmation before deleting remote history
 - Markdown table and canonical JSON exports
 
-## Project checks
+## Testing
 
-`npm run check` runs Biome. `npm test` uses Node's test runner.
+`npm test` runs the unit, integration, and Playwright end-to-end suites. The unit and integration suites use `node:test`; integration tests use native `fetch` against isolated databases and ephemeral ports. Install the browser binary once after `npm install`:
+
+```sh
+npx playwright install chromium
+```
+
+Run one suite with `npm run test:unit`, `npm run test:integration`, or `npm run test:e2e`. Mutation testing is separate because it takes longer: run `npm run test:mutation`. Stryker reports are written to `reports/mutation/`; classify survivors in [tests/mutation-survivors.md](tests/mutation-survivors.md).
+
+`npm run check` runs Biome.
