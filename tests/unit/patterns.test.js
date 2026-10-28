@@ -104,7 +104,16 @@ describe('Template Method pattern', () => {
     assert.equal(invalid.valid, false)
     assert.equal(invalid.errors[0].path, '/name')
     assert.equal(validator.validate('{}', schema).errors[0].keyword, 'required')
-    assert.equal(validator.validate('null', null).errors[0].keyword, 'schema')
+    assert.deepEqual(validator.validate('{}', 'not-a-schema'), {
+      valid: false,
+      errors: [
+        {
+          path: '/',
+          keyword: 'schema',
+          message: 'A JSON Schema object is required.',
+        },
+      ],
+    })
   })
 })
 
