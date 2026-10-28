@@ -30,7 +30,11 @@ describe('Strategy pattern', () => {
       type: 'object',
       required: ['name'],
       properties: {
-        name: { type: ['string', 'null'], description: 'First | last\nname' },
+        name: {
+          type: ['string', 'null'],
+          description: 'First | last\nname',
+          example: 'Ada | Lovelace',
+        },
         address: {
           type: 'object',
           properties: { city: { type: 'string', format: 'text' } },
@@ -42,7 +46,7 @@ describe('Strategy pattern', () => {
     )
     assert.ok(
       markdown.includes(
-        '| name | string \\| null |  | Yes | First \\| last name |',
+        '| name | string \\| null |  | Yes | First \\| last name | "Ada \\| Lovelace" |',
       ),
     )
     assert.match(markdown, /\| address\.city \| string \| text \| No \|/)
