@@ -153,25 +153,28 @@ describe('Observer pattern', () => {
 
   test('debounces live validation through native fetch', async (context) => {
     const originalFetch = globalThis.fetch
-    let requestBody
+    const requestBodies = []
+    const results = []
     globalThis.fetch = async (_url, options) => {
-      requestBody = JSON.parse(options.body)
+      requestBodies.push(JSON.parse(options.body))
       return { ok: true, json: async () => ({ valid: true, errors: [] }) }
     }
     context.after(() => {
       globalThis.fetch = originalFetch
     })
-    const result = await new Promise((resolve, reject) => {
-      const observer = new LiveValidationObserver({
-        endpoint: '/api/validate/schema',
-        delay: 1,
-        onResult: resolve,
-        onError: reject,
-      })
-      observer.update('{"type":"string"}')
+    const observer = new LiveValidationObserver({
+      endpoint: '/api/validate/schema',
+      delay: 10,
+      onResult: (result) => results.push(result),
+      onError: (error) => {
+        throw error
+      },
     })
-    assert.deepEqual(requestBody, { content: '{"type":"string"}' })
-    assert.deepEqual(result, { valid: true, errors: [] })
+    observer.update('{"type":"string"}')
+    observer.update('{"type":"number"}')
+    await new Promise((resolve) => setTimeout(resolve, 30))
+    assert.deepEqual(requestBodies, [{ content: '{"type":"number"}' }])
+    assert.deepEqual(results, [{ valid: true, errors: [] }])
   })
 })
 
