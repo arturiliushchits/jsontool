@@ -1,3 +1,5 @@
+import logger from '../logger.js'
+
 export default class SchemaRepository {
   constructor(database) {
     this.database = database
@@ -56,6 +58,10 @@ export default class SchemaRepository {
 
   hasSchema(link) {
     return Boolean(this.findSchema.get(link))
+  }
+
+  getSchemaId(link) {
+    return this.findSchema.get(link)?.id
   }
 
   createSnapshot(requestedLink, content, label, createSchema) {
@@ -142,7 +148,7 @@ export default class SchemaRepository {
       try {
         this.database.exec('ROLLBACK')
       } catch (rollbackError) {
-        console.error('Database rollback failed:', rollbackError)
+        logger.error('Database rollback failed:', rollbackError)
       }
       throw error
     }
