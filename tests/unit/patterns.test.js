@@ -30,7 +30,11 @@ describe('Strategy pattern', () => {
       type: 'object',
       required: ['name'],
       properties: {
-        name: { type: ['string', 'null'], description: 'First | last\nname' },
+        name: {
+          type: ['string', 'null'],
+          description: 'First | last\nname',
+          example: 'Ada | Lovelace',
+        },
         address: {
           type: 'object',
           properties: { city: { type: 'string', format: 'text' } },
@@ -42,7 +46,7 @@ describe('Strategy pattern', () => {
     )
     assert.ok(
       markdown.includes(
-        '| name | string \\| null |  | Yes | First \\| last name |',
+        '| name | string \\| null |  | Yes | First \\| last name | "Ada \\| Lovelace" |',
       ),
     )
     assert.match(markdown, /\| address\.city \| string \| text \| No \|/)
@@ -104,7 +108,16 @@ describe('Template Method pattern', () => {
     assert.equal(invalid.valid, false)
     assert.equal(invalid.errors[0].path, '/name')
     assert.equal(validator.validate('{}', schema).errors[0].keyword, 'required')
-    assert.equal(validator.validate('null', null).errors[0].keyword, 'schema')
+    assert.deepEqual(validator.validate('{}', 'not-a-schema'), {
+      valid: false,
+      errors: [
+        {
+          path: '/',
+          keyword: 'schema',
+          message: 'A JSON Schema object is required.',
+        },
+      ],
+    })
   })
 })
 
@@ -153,25 +166,28 @@ describe('Observer pattern', () => {
 
   test('debounces live validation through native fetch', async (context) => {
     const originalFetch = globalThis.fetch
-    let requestBody
+    const requestBodies = []
+    const results = []
     globalThis.fetch = async (_url, options) => {
-      requestBody = JSON.parse(options.body)
+      requestBodies.push(JSON.parse(options.body))
       return { ok: true, json: async () => ({ valid: true, errors: [] }) }
     }
     context.after(() => {
       globalThis.fetch = originalFetch
     })
-    const result = await new Promise((resolve, reject) => {
-      const observer = new LiveValidationObserver({
-        endpoint: '/api/validate/schema',
-        delay: 1,
-        onResult: resolve,
-        onError: reject,
-      })
-      observer.update('{"type":"string"}')
+    const observer = new LiveValidationObserver({
+      endpoint: '/api/validate/schema',
+      delay: 10,
+      onResult: (result) => results.push(result),
+      onError: (error) => {
+        throw error
+      },
     })
-    assert.deepEqual(requestBody, { content: '{"type":"string"}' })
-    assert.deepEqual(result, { valid: true, errors: [] })
+    observer.update('{"type":"string"}')
+    observer.update('{"type":"number"}')
+    await new Promise((resolve) => setTimeout(resolve, 30))
+    assert.deepEqual(requestBodies, [{ content: '{"type":"number"}' }])
+    assert.deepEqual(results, [{ valid: true, errors: [] }])
   })
 })
 
