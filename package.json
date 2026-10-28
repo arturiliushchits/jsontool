@@ -10,6 +10,7 @@
     "dev": "node --watch server/main.js",
     "test": "npm run test:unit && npm run test:integration && npm run test:e2e",
     "test:unit": "node --test tests/smoke.test.js tests/unit/*.test.js",
+    "test:coverage": "node --test --experimental-test-coverage tests/smoke.test.js tests/unit/*.test.js",
     "test:integration": "node --test tests/integration/*.test.js",
     "test:e2e": "node --test tests/e2e/*.test.js",
     "test:mutation": "stryker run",
