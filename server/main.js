@@ -1,7 +1,9 @@
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 import express from 'express'
+import SchemaService from './core/schemaService.js'
 import { createDatabase } from './db/database.js'
+import SchemaRepository from './db/schemaRepository.js'
 import exportRouter from './routes/export.js'
 import createSchemasRouter from './routes/schemas.js'
 import validationRouter from './routes/validation.js'
@@ -28,7 +30,9 @@ export function createApp(database) {
   const app = express()
   app.use(express.json({ limit: '2mb' }))
   app.use(express.static(join(serverDirectory, '..', 'public')))
-  app.use('/api/schemas', createSchemasRouter(database))
+  const schemaRepository = new SchemaRepository(database)
+  const schemaService = new SchemaService(schemaRepository)
+  app.use('/api/schemas', createSchemasRouter(schemaService))
   app.use('/api/export', exportRouter)
   app.use('/api/validate', validationRouter)
   app.use((request, response, next) => {
