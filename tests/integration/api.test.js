@@ -15,7 +15,7 @@ after(async () => {
 describe('Service status API', () => {
   test('returns the Render commit SHA from /version', async () => {
     const previousCommit = process.env.RENDER_GIT_COMMIT
-    process.env.RENDER_GIT_COMMIT = 'render-commit-sha'
+    process.env.RENDER_GIT_COMMIT = 'render-commit-sha000000000'
     try {
       const response = await request('/version')
       assert.equal(response.status, 200)
