@@ -12,6 +12,30 @@ after(async () => {
   await server.close()
 })
 
+describe('Service status API', () => {
+  test('returns the Render commit SHA from /version', async () => {
+    const previousCommit = process.env.RENDER_GIT_COMMIT
+    process.env.RENDER_GIT_COMMIT = 'render-commit-sha'
+    try {
+      const response = await request('/version')
+      assert.equal(response.status, 200)
+      assert.deepEqual(await response.json(), { sha: 'render-commit-sha' })
+    } finally {
+      if (previousCommit === undefined) {
+        delete process.env.RENDER_GIT_COMMIT
+      } else {
+        process.env.RENDER_GIT_COMMIT = previousCommit
+      }
+    }
+  })
+
+  test('checks database connectivity at /health', async () => {
+    const response = await request('/health')
+    assert.equal(response.status, 200)
+    assert.deepEqual(await response.json(), { status: 'ok' })
+  })
+})
+
 async function request(path, options) {
   return fetch(`${server.baseUrl}${path}`, options)
 }

@@ -44,7 +44,22 @@ export function createApp(database) {
   const app = express()
   const schemaRepository = new SchemaRepository(database)
   const schemaService = new SchemaService(schemaRepository)
+  const healthCheck = database.prepare('SELECT 1')
 
+  app.get('/version', (_request, response) => {
+    response.json({
+      sha: process.env.RENDER_GIT_COMMIT || process.env.GITHUB_SHA || 'unknown',
+    })
+  })
+  app.get('/health', (_request, response) => {
+    try {
+      healthCheck.get()
+      return response.json({ status: 'ok' })
+    } catch (error) {
+      logger.error('Health check database query failed:', error)
+      return response.status(503).json({ status: 'error' })
+    }
+  })
   app.use((request, _response, next) => {
     const encodedSchemaLink = request.path.match(
       /^\/api\/schemas\/([^/]+)/,
@@ -96,7 +111,13 @@ if (
   process.argv[1] &&
   pathToFileURL(resolve(process.argv[1])).href === import.meta.url
 ) {
-  const database = createDatabase()
+  let database
+  try {
+    database = createDatabase()
+  } catch (error) {
+    logger.error('Database initialization failed:', error)
+    process.exit(1)
+  }
   const port = Number(process.env.PORT) || 3000
   const server = createApp(database).listen(port, () => {
     logger.info(`JSON Tool is running at http://localhost:${port}`)
