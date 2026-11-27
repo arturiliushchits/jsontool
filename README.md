@@ -18,6 +18,8 @@ Open `http://localhost:3000`. For automatic server restarts during development, 
 
 The SQLite database is created at `server/db/json-tool.sqlite` on first startup. Edits and Undo/Redo history stay local until you choose **Save version** or **Share**. Snapshots default to their UTC save date and time (`YYYY-MM-DD HH:mm:ss UTC`) as a name and can be renamed, restored, or deleted with confirmation. Share saves the current snapshot before copying the public link. Deleting the last snapshot also removes its public link. Links are public and do not require an account.
 
+Database startup initialization runs idempotently in three phases: DDL/table compatibility first, label and data updates second, and index creation last.
+
 ## Features
 
 - JSON Schema editor with syntax highlighting, formatting, and live draft-07 / draft-2020-12 diagnostics
